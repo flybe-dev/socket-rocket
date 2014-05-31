@@ -1,5 +1,5 @@
 (ns socket-rocket.logstash
-  (:import (java.io InputStreamReader BufferedReader PrintWriter ObjectOutputStream OutputStream)
+  (:import (java.io  PrintWriter )
            (java.net InetAddress Socket))
   (:require [taoensso.timbre :refer [stacktrace]]
             [cheshire.core :refer  [generate-string]]
