@@ -59,7 +59,7 @@
                       :hostname  (-> hostname strs/upper-case)
                       :ns        ns}))
 
-(defn appender-fn [:keys [ap-config] :as params]
+(defn appender-fn [{:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer
