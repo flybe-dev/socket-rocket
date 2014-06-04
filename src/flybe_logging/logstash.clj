@@ -1,7 +1,7 @@
 (ns socket-rocket.logstash
   (:import (java.io  PrintWriter )
            (java.net InetAddress Socket))
-  (:require [taoensso.timbre :refer [stacktrace]]
+  (:require [taoensso.timbre :as timbre]
             [cheshire.core :refer  [generate-string]]
             [clojure.string :as strs]))
 
@@ -53,7 +53,7 @@
   [{:keys [level throwable message timestamp hostname ns]}]
   (generate-string {
                       :level     level
-                      :throwable (stacktrace throwable)
+                      :throwable (timbre/stacktrace throwable)
                       :message   (read-string message)
                       :timestamp (-> timestamp strs/upper-case)
                       :hostname  (-> hostname strs/upper-case)
@@ -69,11 +69,11 @@
 
 
 (def logstash-appender
-  {:doc (str "Logs to a listening socket.\n"
-             "Needs :logstash config map in :shared-appender-config, e.g.:
-             {:logstash \"128.200.20.117\"
-              :port 4660}")
-   :min-level :trace :enabled? true
+  "Logs to a listening socket.\n"
+  "Needs :logstash config map in :shared-appender-config, e.g.:
+  {:logstash \"128.200.20.117\"
+   :port 4660}"
+  {:min-level :trace :enabled? true
    :fn appender-fn})
 
 
