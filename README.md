@@ -4,6 +4,20 @@ A [LogStash](http://logstash.net/) appender for [timbre](https://github.com/ptao
 
 This will send json through a socket to your logstash listener.
 
+##Dependencies
+###Leiningen
+```[com.flybe/socket-rocket "0.1.0"]```
+###Gradle
+```compile "com.flybe:socket-rocket:0.1.0"```
+###Maven
+```xml
+<dependency>
+  <groupId>com.flybe</groupId>
+  <artifactId>socket-rocket</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
 ## Usage
 Timbre  Configuration:
 

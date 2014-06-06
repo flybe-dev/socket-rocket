@@ -62,8 +62,6 @@
 (defn appender-fn [{:keys [ap-config args message] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
-      (println (type args))
-      #_(assoc args :print-str message )
       (.println printer
                 (json-formatter params))
       (.flush printer))))
