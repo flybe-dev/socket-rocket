@@ -54,14 +54,16 @@
   (generate-string {
                       :level     level
                       :throwable (timbre/stacktrace throwable)
-                      :message   (read-string message)
+                      :message   message
                       :timestamp (-> timestamp strs/upper-case)
                       :hostname  (-> hostname strs/upper-case)
                       :ns        ns}))
 
-(defn appender-fn [{:keys [ap-config] :as params}]
+(defn appender-fn [{:keys [ap-config args message] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
+      (println (type args))
+      #_(assoc args :print-str message )
       (.println printer
                 (json-formatter params))
       (.flush printer))))
@@ -69,8 +71,8 @@
 
 
 (def logstash-appender
-  "Logs to a listening socket.\n"
-  "Needs :logstash config map in :shared-appender-config, e.g.:
+  "Logs to a listening socket.\n
+  Needs :logstash config map in :shared-appender-config, e.g.:
   {:logstash \"128.200.20.117\"
    :port 4660}"
   {:min-level :trace :enabled? true
@@ -79,4 +81,4 @@
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
-                                                                  :logstash "128.200.20.117"}))
+                                                                  :logstash "dougal.development.local"}))

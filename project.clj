@@ -4,9 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [com.taoensso/timbre "3.1.6"]
+                 [com.taoensso/timbre "3.2.1"]
                  [cheshire "5.3.1"]]
   :plugins [[codox "0.7.3"]]
   :codox {:src-dir-uri "https://github.com/flybe-dev/socket-rocket/blob/master"
           :src-linenum-anchor-prefix ""
-          :sources ["src/flybe_logging"]})
+          :sources ["src/socket_rocket"]}
+  :deploy-repositories {"clojars" {:sign-releases false
+                                  :url "https://clojars.org/repo/"}})
