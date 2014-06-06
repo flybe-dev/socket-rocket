@@ -48,18 +48,17 @@
   (swap! conn #(or (and (-> % awesome?) %)
                    (connect socket-config))))
 
-
 (defn json-formatter
-  [{:keys [level throwable message timestamp hostname ns]}]
+  [{:keys [level throwable message timestamp hostname ns args] :as params}]
   (generate-string {
-                      :level     level
-                      :throwable (timbre/stacktrace throwable)
-                      :message   message
-                      :timestamp (-> timestamp strs/upper-case)
-                      :hostname  (-> hostname strs/upper-case)
-                      :ns        ns}))
+                      :level      level
+                      :throwable  (timbre/stacktrace throwable)
+                      :msg        args
+                      :timestamp  (-> timestamp strs/upper-case)
+                      :hostname   (-> hostname strs/upper-case)
+                      :ns         ns}))
 
-(defn appender-fn [{:keys [ap-config args message] :as params}]
+(defn appender-fn [{:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer
@@ -76,7 +75,6 @@
   {:min-level :trace
    :enabled? true
    :fn appender-fn})
-
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
