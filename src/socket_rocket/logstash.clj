@@ -73,10 +73,11 @@
   Needs :logstash config map in :shared-appender-config, e.g.:
   {:logstash \"128.200.20.117\"
    :port 4660}"
-  {:min-level :trace :enabled? true
+  {:min-level :trace
+   :enabled? true
    :fn appender-fn})
 
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
-                                                                  :logstash "dougal.development.local"}))
+                                                                  :logstash "128.200.20.117"}))
