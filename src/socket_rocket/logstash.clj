@@ -1,6 +1,7 @@
 (ns socket-rocket.logstash
   (:import (java.io  PrintWriter )
-           (java.net InetAddress Socket))
+           (java.net InetAddress Socket)
+           (clojure.lang PersistentArrayMap PersistentVector))
   (:require [taoensso.timbre :as timbre]
             [cheshire.core :refer  [generate-string]]
             [clojure.string :as strs]))
@@ -57,12 +58,44 @@
                       :timestamp  (-> timestamp strs/upper-case)
                       :hostname   (-> hostname strs/upper-case)
                       :ns         ns}))
+(defn args-isa?
+  [params]
+  (println (type (:args params)))
+  (-> :args params first type))
+
+(defn partition-map
+  [n coll]
+  (let [c (partition n coll)]
+    (-> (map (fn [[k v]] {k v}) c) vec)))
+
+
+(defmulti format-params args-isa?)
+
+(defmethod format-params
+           PersistentArrayMap
+           [params]
+  (json-formatter params))
+
+(defmethod format-params
+           String
+           [params]
+  (let [args (:args params)
+        new-args (assoc params :args {:default args})]
+    (json-formatter new-args)))
+
+(defmethod format-params
+           PersistentVector
+           [params]
+  (println (:args params))
+  (let [args (:args params)
+        new-args (assoc params :args (apply #(partition-map 2 %) args))]
+    (json-formatter new-args)))
 
 (defn appender-fn [{:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer
-                (json-formatter params))
+                (format-params params))
       (.flush printer))))
 
 
@@ -78,4 +111,4 @@
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
-                                                                  :logstash "128.200.20.117"}))
+                                                                  :logstash "192.168.0.1"}))
