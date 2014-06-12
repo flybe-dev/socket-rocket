@@ -1,7 +1,8 @@
 (ns socket-rocket.logstash
   (:import (java.io  PrintWriter )
            (java.net InetAddress Socket)
-           (clojure.lang PersistentArrayMap PersistentVector))
+           (clojure.lang PersistentArrayMap PersistentVector LazySeq IPersistentMap)
+           (java.util Formattable))
   (:require [taoensso.timbre :as timbre]
             [cheshire.core :refer  [generate-string]]
             [clojure.string :as strs]))
@@ -49,18 +50,29 @@
   (swap! conn #(or (and (-> % awesome?) %)
                    (connect socket-config))))
 
+(defprotocol IFormattable
+  (formatty [this]))
+(extend-protocol IFormattable
+  IPersistentMap
+  (formatty [this] this)
+  Object
+  (formatty [this]
+    {:value this})
+  nil                                                       ;; Pass the nils back up, I don't want an exception here!
+  (formatty [this]
+    {:nil this}))
+
 (defn json-formatter
-  [{:keys [level throwable message timestamp hostname ns args] :as params}]
+  [{:keys [level throwable timestamp hostname args] :as params}]
   (generate-string {
                       :level      level
                       :throwable  (timbre/stacktrace throwable)
-                      :msg        args
+                      :msg        (apply formatty args)
                       :timestamp  (-> timestamp strs/upper-case)
                       :hostname   (-> hostname strs/upper-case)
-                      :ns         ns}))
+                      :ns         (str *ns*)}))
 (defn args-isa?
   [params]
-  (println (type (:args params)))
   (-> :args params first type))
 
 (defn partition-map
@@ -68,37 +80,12 @@
   (let [c (partition n coll)]
     (-> (map (fn [[k v]] {k v}) c) vec)))
 
-
-(defmulti format-params args-isa?)
-
-(defmethod format-params
-           PersistentArrayMap
-           [params]
-  (json-formatter params))
-
-(defmethod format-params
-           String
-           [params]
-  (let [args (:args params)
-        new-args (assoc params :args {:default args})]
-    (json-formatter new-args)))
-
-(defmethod format-params
-           PersistentVector
-           [params]
-  (println (:args params))
-  (let [args (:args params)
-        new-args (assoc params :args (apply #(partition-map 2 %) args))]
-    (json-formatter new-args)))
-
 (defn appender-fn [{:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer
-                (format-params params))
+                (json-formatter params))
       (.flush printer))))
-
-
 
 (def logstash-appender
   "Logs to a listening socket.\n
@@ -111,4 +98,4 @@
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
-                                                                  :logstash "192.168.0.1"}))
+                                                                  :logstash "dougal.development.local"}))
