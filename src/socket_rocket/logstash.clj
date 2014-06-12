@@ -54,7 +54,7 @@
   (formatty [this]))
 (extend-protocol IFormattable
   IPersistentMap
-  (formatty [this] this)
+  (formatty [this] [this])
   Object
   (formatty [this]
     {:value this})
