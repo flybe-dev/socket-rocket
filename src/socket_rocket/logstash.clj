@@ -50,24 +50,13 @@
   (swap! conn #(or (and (-> % awesome?) %)
                    (connect socket-config))))
 
-(defprotocol IFormattable
-  (formatty [this]))
-(extend-protocol IFormattable
-  IPersistentMap
-  (formatty [this] [this])
-  Object
-  (formatty [this]
-    {:value this})
-  nil                                                       ;; Pass the nils back up, I don't want an exception here!
-  (formatty [this]
-    {:nil this}))
 
 (defn json-formatter
-  [{:keys [level throwable timestamp hostname args] :as params}]
+  [{:keys [level throwable timestamp message hostname args] :as params}]
   (generate-string {
                       :level      level
                       :throwable  (timbre/stacktrace throwable)
-                      :msg        (apply formatty args)
+                      :msg        message
                       :timestamp  (-> timestamp strs/upper-case)
                       :hostname   (-> hostname strs/upper-case)
                       :ns         (str *ns*)}))
