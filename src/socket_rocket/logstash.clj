@@ -10,10 +10,12 @@
 (def conn (atom nil))
 
 (defn connect [{:keys [port logstash]}]
-  (let [addr (InetAddress/getByName logstash)
-        sock (Socket. addr port)]
-    {:printer (PrintWriter. (.getOutputStream sock))
-     :socket sock}))
+  (try
+    (let [addr (InetAddress/getByName logstash)
+          sock (Socket. addr port)]
+      {:printer (PrintWriter. (.getOutputStream sock))
+       :socket  sock})
+    (catch Throwable _)))
 
 (defn connected?
   [sock]
@@ -71,7 +73,7 @@
 
 (defn appender-fn [{:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
-    (let [{:keys [printer]} (ensure-conn socket-config)]
+    (when-let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer
                 (json-formatter params))
       (.flush printer))))
@@ -87,4 +89,4 @@
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
-                                                                  :logstash "dougal.development.local"}))
+                                                                  :logstash "dougal.develofdspment.local"}))
