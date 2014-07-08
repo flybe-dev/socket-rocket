@@ -4,7 +4,7 @@
            (clojure.lang PersistentArrayMap PersistentVector LazySeq IPersistentMap)
            (java.util Formattable))
   (:require [taoensso.timbre :as timbre]
-            [cheshire.core :refer  [generate-string]]
+            [cheshire.core :refer [generate-string]]
             [clojure.string :as strs]))
 
 (def conn (atom nil))
@@ -71,21 +71,24 @@
   (let [c (partition n coll)]
     (-> (map (fn [[k v]] {k v}) c) vec)))
 
-(defn appender-fn [{:keys [ap-config] :as params}]
+(defn- appender-fn [formatter-fn {:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (when-let [{:keys [printer]} (ensure-conn socket-config)]
-      (.println printer
-                (json-formatter params))
+      (.println printer (formatter-fn params))
       (.flush printer))))
 
-(def logstash-appender
-  "Logs to a listening socket.\n
+(defn make-logstash-appender
+  "Logs to a listening socket.
   Needs :logstash config map in :shared-appender-config, e.g.:
   {:logstash \"128.200.20.117\"
    :port 4660}"
+  [formatter-fn]
   {:min-level :trace
    :enabled? true
-   :fn appender-fn})
+   :fn (partial appender-fn formatter-fn)})
+
+(def logstash-appender
+  (make-logstash-appender json-formatter))
 
 (comment (timbre/set-config! [:appenders :logstash] logstash-appender)
          (timbre/set-config! [:shared-appender-config :logstash] {:port     4660
