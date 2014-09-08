@@ -54,24 +54,18 @@
 
 
 (defn json-formatter
-  [{:keys [level throwable timestamp message hostname args] :as params}]
-  (generate-string {
-                      :level      level
-                      :throwable  (timbre/stacktrace throwable)
-                      :msg        message
-                      :timestamp  (-> timestamp strs/upper-case)
-                      :hostname   (-> hostname strs/upper-case)
-                      :ns         (str *ns*)}))
-(defn args-isa?
-  [params]
-  (-> :args params first type))
+  [{:keys [level throwable timestamp message hostname args logstash] :as params}]
+  (let [ns (-> logstash :ap-config :logstash :ns)]
+    (generate-string {
+                       :level     level
+                       :throwable (timbre/stacktrace throwable)
+                       :msg       message
+                       :timestamp (-> timestamp strs/upper-case)
+                       :hostname  (-> hostname strs/upper-case)
+                       :ns        (or ns *ns*)})))
 
-(defn partition-map
-  [n coll]
-  (let [c (partition n coll)]
-    (-> (map (fn [[k v]] {k v}) c) vec)))
 
-(defn- appender-fn [formatter-fn {:keys [ap-config] :as params}]
+(defn appender-fn [formatter-fn {:keys [ap-config] :as params}]
   (when-let [socket-config (:logstash ap-config)]
     (when-let [{:keys [printer]} (ensure-conn socket-config)]
       (.println printer (formatter-fn params))
@@ -81,7 +75,8 @@
   "Logs to a listening socket.
   Needs :logstash config map in :shared-appender-config, e.g.:
   {:logstash \"128.200.20.117\"
-   :port 4660}"
+   :port 4660
+   :ns *ns*}"
   [formatter-fn]
   {:min-level :trace
    :enabled? true
