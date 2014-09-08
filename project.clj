@@ -1,4 +1,4 @@
-(defproject com.flybe/socket-rocket "0.1.7"
+(defproject com.flybe/socket-rocket "0.1.8"
   :description "A socket appender for Logstash & Timbre"
   :url "https://github.com/flybe-dev/socket-rocket"
   :license {:name "Eclipse Public License"
