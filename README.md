@@ -1,5 +1,5 @@
 # socket-rocket
-
+[![Clojars Project](http://clojars.org/com.flybe/socket-rocket/latest-version.svg)](http://clojars.org/com.flybe/socket-rocket)
 A [LogStash](http://logstash.net/) appender for [timbre](https://github.com/ptaoussanis/timbre).
 
 This will send json through a socket to your logstash listener.
