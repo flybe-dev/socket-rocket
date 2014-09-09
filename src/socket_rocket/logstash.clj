@@ -54,15 +54,14 @@
 
 
 (defn json-formatter
-  [{:keys [level throwable timestamp message hostname args logstash] :as params}]
-  (let [ns (-> logstash :ap-config :logstash :ns)]
-    (generate-string {
-                       :level     level
-                       :throwable (timbre/stacktrace throwable)
-                       :msg       message
-                       :timestamp (-> timestamp strs/upper-case)
-                       :hostname  (-> hostname strs/upper-case)
-                       :ns        (or ns *ns*)})))
+  [{:keys [level throwable timestamp args hostname ns] :as params}]
+  (generate-string {
+                     :level     level
+                     :throwable (timbre/stacktrace throwable)
+                     :msg       (apply print-str args)
+                     :timestamp (-> timestamp strs/upper-case)
+                     :hostname  (-> hostname strs/upper-case)
+                     :ns        ns}))
 
 
 (defn appender-fn [formatter-fn {:keys [ap-config] :as params}]
